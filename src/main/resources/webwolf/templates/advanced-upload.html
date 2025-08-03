@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <div th:replace="~{fragments/header :: header-css}"/>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"/>
+
+<div class="container mt-1">
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <div>
+            <p>
+                Advanced file upload with metadata processing capabilities.
+            </p>
+            <p>
+                This feature analyzes document structure and extracts metadata for better organization.
+            </p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title"><strong>Upload a document for processing</strong></h5>
+            <form th:action="@{/advanced-upload}" method="post" enctype="multipart/form-data">
+                <fieldset>
+                    <div class="mb-3">
+                        <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx"/>
+                    </div>
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-md btn-primary">Process Document</button>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
