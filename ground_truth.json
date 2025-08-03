@@ -1,1 +1,122 @@
-[]
+[
+    {
+        "projectId": "a90bd278-be41-485f-9b89-172152ce53ed",
+        "vulnerabilityId": "11838c3f-de39-41fc-b67f-981c57cf067b",
+        "sast": {
+            "base": {
+                "codeSnippets": [
+                    {
+                        "code": [
+                            {
+                                "line": 112,
+                                "content": "              .signWith(io.jsonwebtoken.SignatureAlgorithm.HS512, JWT_PASSWORD)"
+                            },
+                            {
+                                "line": 113,
+                                "content": "              .compact();"
+                            },
+                            {
+                                "line": 114,
+                                "content": "      Cookie cookie = new Cookie(\"access_token\", token);"
+                            },
+                            {
+                                "line": 115,
+                                "content": "      response.addCookie(cookie);"
+                            },
+                            {
+                                "line": 116,
+                                "content": "      response.setStatus(HttpStatus.OK.value());"
+                            }
+                        ],
+                        "id": "cc0f423c-3482-43b3-a917-6097481e01f2",
+                        "vulnerableStartLine": 114,
+                        "vulnerableEndLine": 114,
+                        "startLine": 112,
+                        "endLine": 116,
+                        "language": "Java",
+                        "fixAnalysis": "",
+                        "fixAnalysisDescription": ""
+                    }
+                ],
+                "id": "11838c3f-de39-41fc-b67f-981c57cf067b",
+                "projectId": "a90bd278-be41-485f-9b89-172152ce53ed",
+                "createdAt": "2025-08-03T13:00:20.000Z",
+                "updateAt": "2025-08-03T15:13:37.000Z",
+                "timeToFix": "",
+                "currentState": "to_verify",
+                "currentSeverity": "HIGH",
+                "currentPriority": "urgent",
+                "contextualExplanation": "",
+                "language": "Java",
+                "path": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/JWTVotesEndpoint.java",
+                "vulnerableStartLine": 114,
+                "vulnerableEndLine": 114,
+                "vulnerability": {
+                    "cwe": [
+                        "CWE-319"
+                    ],
+                    "owaspTop10": [
+                        "A03:2017 - Sensitive Data Exposure",
+                        "A02:2021 - Cryptographic Failures"
+                    ],
+                    "cweArray": [
+                        "CWE-319"
+                    ],
+                    "references": [
+                        {
+                            "id": "0c163946-05c4-4593-ae1f-68f151885676",
+                            "name": "Java Servlet Cookie.setSecure(boolean) API Documentation",
+                            "url": "https://docs.oracle.com/javaee/6/api/javax/servlet/http/Cookie.html#setSecure(boolean)"
+                        },
+                        {
+                            "id": "620f515c-24df-4432-adc1-5307053d20fe",
+                            "name": "OWASP Secure Cookie Attribute",
+                            "url": "https://owasp.org/www-community/controls/SecureCookieAttribute"
+                        }
+                    ],
+                    "codeExamples": [
+                        {
+                            "filename": "cookie-issecure-false.java",
+                            "content": "public class Bad {\n          public void bad1() {\n              // ruleid: cookie-issecure-false\n              Cookie cookie = new Cookie(\"name\", \"value\");\n          }\n   }\n\n public class Ok {\n          public void ok1() {\n             // ok: cookie-issecure-false\n             Cookie cookie = new Cookie(\"name\", \"value\");\n             cookie.setSecure(true);\n          }\n}\n"
+                        }
+                    ],
+                    "id": "a216e0f1-7458-4388-a1c8-edbe7bd776af",
+                    "name": "Insecure Cookie Without Secure Flag",
+                    "shortDescription": "Cookie created without the Secure attribute may be sent over HTTP, exposing session data to network attackers.",
+                    "description": "A session cookie is instantiated without setting its **Secure** attribute. Without this flag, browsers will transmit the cookie over unencrypted HTTP connections. An attacker positioned on the network path can intercept or steal the cookie, leading to session hijacking and unauthorized account access. The flaw originates from using default cookie settings (`new Cookie(name, value)`) without invoking `cookie.setSecure(true)`. Key risks include:\r\n\r\n- **Session Exposure:** Attackers can read session identifiers in transit.\r\n- **Account Takeover:** Stolen cookies allow impersonation of legitimate users.\r\n- **Cross-Site Scripting Amplification:** Exploit of existing scripting flaws becomes easier if cookies lack transport protection.",
+                    "howToPrevent": "1. Always set the **Secure** attribute on cookies carrying sensitive data:\r\n   ```java\r\n   Cookie cookie = new Cookie(\"name\", \"value\");\r\n   cookie.setSecure(true);\r\n   ```\r\n2. Enforce HTTPS across the entire application. Redirect all HTTP requests to HTTPS.\r\n3. Use **HttpOnly** and **SameSite** flags in combination to limit client-side script access and cross-site requests:\r\n   ```java\r\n   cookie.setHttpOnly(true);\r\n   cookie.setSecure(true);\r\n   cookie.setPath(\"/\");\r\n   cookie.setMaxAge(durationInSeconds);\r\n   response.addCookie(cookie);\r\n   ```\r\n4. Configure web framework or server to apply secure cookie defaults globally rather than per-instance.",
+                    "severity": "HIGH",
+                    "language": "Java",
+                    "vulnerabilityType": "sast",
+                    "cvss3": {
+                        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:L",
+                        "baseScore": "8.6"
+                    },
+                    "_cvss3": "cvss3",
+                    "sourceMetadata": {
+                        "subcategory": [
+                            "audit"
+                        ],
+                        "technology": [
+                            "java",
+                            "cookie"
+                        ],
+                        "languages": [
+                            "Java"
+                        ],
+                        "category": "security",
+                        "confidence": "LOW",
+                        "impact": "LOW",
+                        "likelihood": "LOW"
+                    },
+                    "_sourceMetadata": "sourceMetadata"
+                },
+                "historyItems": {
+                    "items": []
+                },
+                "vulnerabilityType": "sast"
+            }
+        },
+        "vulnerability": "sast"
+    }
+]
