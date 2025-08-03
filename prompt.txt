@@ -82,4 +82,17 @@ Je vais maintenant te détailler chaque étape qu’il faudra faire pour réalis
 					* Cas d'un VRAI POSITIF : La source de la donnée "contaminée" (l'injection) doit être discrète. Évitez les input() évidents et privilégiez des points d'entrée réalistes mais cachés (paramètres d'API, cookies, headers HTTP, etc.).
 		- INTEGRATION ET ACCESSIBILITE EXTERNE : Le nouveau code vulnérable ne doit JAMAIS être du code mort (dead code). Vous devez l'intégrer pleinement dans l'application en vous assurant qu'il est appelable depuis un point d'entrée externe (ex: une nouvelle route API, un endpoint de formulaire, etc.). Un utilisateur ou un service extérieur doit pouvoir déclencher le chemin d'exécution menant à la vulnérabilité.
 
+FORMAT DE SORTIE FINAL ATTENDU
+
+Votre réponse finale doit être un rapport complet, clairement structuré en deux parties distinctes correspondant aux deux étapes de votre mission.
+
+Partie 1 : Analyse de la Vulnérabilité Existante
+- L'objet JSON contenant le "dataflow" et la "vulnerability_truth" pour la vulnérabilité initiale ajouté dans le fichier ground_truth.json à la vulnérabilité analysée.
+
+Partie 2 : Création et Analyse de la Nouvelle Vulnérabilité
+
+- L'objet JSON contenant le "dataflow" et la "vulnerability_truth" pour la vulnérabilité que vous venez de créer ajouté dans le fichier ground_truth.json.
+
+Cette structure en deux parties est impérative pour la validation de votre travail.
+
 Suis le process détaillé donné ci-dessus pour cette vulnérabilité : 
