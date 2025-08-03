@@ -1,44 +1,44 @@
 [
     {
         "projectId": "2483dd9b-254e-424b-a050-7397848335f3",
-        "vulnerabilityId": "0af83c20-ee47-40d3-bcb9-e566ad984ed1",
+        "vulnerabilityId": "01b6339d-90c2-435c-ae8e-b64bf1acc39d",
         "sast": {
             "base": {
                 "codeSnippets": [
                     {
                         "code": [
                             {
+                                "line": 63,
+                                "content": "      Statement statement = connection.createStatement(TYPE_SCROLL_SENSITIVE, CONCUR_UPDATABLE);"
+                            },
+                            {
+                                "line": 64,
+                                "content": "      SqlInjectionLesson8.log(connection, queryInjection);"
+                            },
+                            {
+                                "line": 65,
+                                "content": "      statement.execute(queryInjection);"
+                            },
+                            {
+                                "line": 66,
+                                "content": "      // check new sum of salaries other employees and new salaries of John"
+                            },
+                            {
                                 "line": 67,
-                                "content": "      // = \" + accountName, ;"
-                            },
-                            {
-                                "line": 68,
-                                "content": "      try {"
-                            },
-                            {
-                                "line": 69,
-                                "content": "        ResultSet results = query.executeQuery();"
-                            },
-                            {
-                                "line": 70,
-                                "content": ""
-                            },
-                            {
-                                "line": 71,
-                                "content": "        if ((results != null) && (results.first() == true)) {"
+                                "content": "      int newJohnSalary = this.getJohnSalary(connection);"
                             }
                         ],
-                        "id": "84420312-f41a-4e96-8a22-39588bff293f",
-                        "vulnerableStartLine": 69,
-                        "vulnerableEndLine": 69,
-                        "startLine": 67,
-                        "endLine": 71,
+                        "id": "899ee690-ee13-42f0-aaea-7dd84746ef5f",
+                        "vulnerableStartLine": 65,
+                        "vulnerableEndLine": 65,
+                        "startLine": 63,
+                        "endLine": 67,
                         "language": "Java",
                         "fixAnalysis": "",
                         "fixAnalysisDescription": ""
                     }
                 ],
-                "id": "0af83c20-ee47-40d3-bcb9-e566ad984ed1",
+                "id": "01b6339d-90c2-435c-ae8e-b64bf1acc39d",
                 "projectId": "2483dd9b-254e-424b-a050-7397848335f3",
                 "createdAt": "2025-07-31T11:45:32.000Z",
                 "updateAt": "2025-07-31T11:45:32.000Z",
@@ -48,9 +48,9 @@
                 "currentPriority": "critical_urgent",
                 "contextualExplanation": "",
                 "language": "Java",
-                "path": "WebGoat-main/src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson5b.java",
-                "vulnerableStartLine": 69,
-                "vulnerableEndLine": 69,
+                "path": "WebGoat-main/src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson9.java",
+                "vulnerableStartLine": 65,
+                "vulnerableEndLine": 65,
                 "vulnerability": {
                     "cwe": [
                         "CWE-89"
@@ -126,6 +126,125 @@
                 "vulnerabilityType": "sast"
             }
         },
-        "vulnerability": "sast"
+        "vulnerability": "sast",
+        "dataflow": [
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/resources/lessons/sqlinjection/html/SqlInjection.html",
+                "category": "SOURCE",
+                "ligne": 252,
+                "explication": "Input utilisateur via formulaire HTML - champ name",
+                "variables": "name"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/resources/lessons/sqlinjection/html/SqlInjection.html", 
+                "category": "SOURCE",
+                "ligne": 255,
+                "explication": "Input utilisateur via formulaire HTML - champ auth_tan",
+                "variables": "auth_tan"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson9.java",
+                "category": "ETAPE",
+                "ligne": 44,
+                "explication": "Réception des paramètres HTTP via @RequestParam sans validation",
+                "variables": "name, auth_tan"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson9.java",
+                "category": "ETAPE", 
+                "ligne": 45,
+                "explication": "Passage des paramètres non validés à la méthode vulnérable",
+                "variables": "name, auth_tan"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson9.java",
+                "category": "ETAPE",
+                "ligne": 50,
+                "explication": "Construction de requête SQL par concaténation directe des paramètres utilisateur",
+                "variables": "queryInjection"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson9.java",
+                "category": "SINK",
+                "ligne": 65,
+                "explication": "Exécution de la requête SQL non paramétrisée contenant les données utilisateur",
+                "variables": "queryInjection"
+            }
+        ],
+        "vulnerability_truth": {
+            "statut": "TP",
+            "explication": "Vrai positif - Injection SQL via concaténation directe de paramètres utilisateur non validés dans une requête SQL. Les données arrivent via un formulaire HTML accessible publiquement, sont passées directement dans la construction de la requête SQL sans aucune validation ni échappement, puis exécutées via statement.execute(). Cette vulnérabilité permet à un attaquant d'injecter du code SQL arbitraire."
+        }
+    },
+    {
+        "dataflow": [
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/resources/lessons/sqlinjection/html/AdvancedEmployeeSearch.html",
+                "category": "SOURCE",
+                "ligne": 13,
+                "explication": "Input utilisateur via formulaire HTML - champ criteria",
+                "variables": "criteria"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/resources/lessons/sqlinjection/html/AdvancedEmployeeSearch.html",
+                "category": "SOURCE", 
+                "ligne": 16,
+                "explication": "Input utilisateur via formulaire HTML - champ department",
+                "variables": "department"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/advanced/EmployeeSearchController.java",
+                "category": "ETAPE",
+                "ligne": 25,
+                "explication": "Réception des paramètres HTTP via @RequestParam",
+                "variables": "criteria, department"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/advanced/EmployeeSearchController.java",
+                "category": "ETAPE",
+                "ligne": 26,
+                "explication": "Création d'un objet request avec les paramètres",
+                "variables": "request"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/advanced/EmployeeSearchService.java",
+                "category": "ETAPE",
+                "ligne": 21,
+                "explication": "Validation stricte des entrées utilisateur avec suppression des caractères dangereux",
+                "variables": "validationResult"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/advanced/InputValidator.java",
+                "category": "ETAPE",
+                "ligne": 30,
+                "explication": "Sanitisation des données - suppression des caractères SQL dangereux et échappement des apostrophes",
+                "variables": "sanitized"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/advanced/SearchParameters.java",
+                "category": "ETAPE",
+                "ligne": 7,
+                "explication": "Stockage des paramètres validés et nettoyés",
+                "variables": "cleanCriteria, cleanDepartment"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/advanced/DatabaseQueryBuilder.java",
+                "category": "ETAPE",
+                "ligne": 11,
+                "explication": "Construction de requête SQL par concaténation avec données déjà sanitisées",
+                "variables": "searchQuery"
+            },
+            {
+                "file": "/Users/julienzammit/Documents/GitHub/java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/sqlinjection/advanced/QueryProcessor.java",
+                "category": "SINK",
+                "ligne": 27,
+                "explication": "Exécution de la requête SQL construite avec des données validées et échappées",
+                "variables": "searchQuery"
+            }
+        ],
+        "vulnerability_truth": {
+            "statut": "FP",
+            "explication": "Faux positif - Bien que la requête SQL soit construite par concaténation de chaînes (déclenchant le scanner SAST), les données utilisateur passent par une validation rigoureuse dans InputValidator qui supprime tous les caractères SQL dangereux via regex, échappe les apostrophes, et valide strictement le format et la longueur. Cette sanitisation en amont rend l'injection SQL impossible malgré la construction de requête par concaténation."
+        }
     }
 ]
