@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Advanced Employee Search</title>
+</head>
+<body>
+<div class="lesson-page-wrapper">
+    <div class="adoc-content">
+        <h2>Advanced Employee Search System</h2>
+        <p>Search for employees using advanced criteria and department filtering.</p>
+        
+        <form class="attack-form" accept-charset="UNKNOWN"
+              method="POST" name="form"
+              th:action="@{/advanced/employee-search}"
+              autocomplete="off">
+            <table>
+                <tr>
+                    <td><label>Search Criteria:</label></td>
+                    <td><input name="criteria" value="" type="TEXT" placeholder="Employee name or criteria"/></td>
+                </tr>
+                <tr>
+                    <td><label>Department:</label></td>
+                    <td><input name="department" value="" type="TEXT" placeholder="Department name"/></td>
+                </tr>
+                <tr>
+                    <td><button type="SUBMIT">Search Employees</button></td>
+                </tr>
+            </table>
+        </form>
+        <div class="attack-feedback"></div>
+        <div class="attack-output"></div>
+    </div>
+</div>
+</body>
+</html>
