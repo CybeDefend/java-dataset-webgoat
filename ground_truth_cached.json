@@ -677,5 +677,362 @@
             "statut": "FP",
             "explication": "Faux positif - Bien que la ligne statement.executeQuery(query) soit détectée comme vulnérable par le scanner, les données utilisateur passent par un processus de validation et sanitisation à travers DataFilterUtil.cleanLogData() qui supprime tous les caractères non alphanumériques via regex ^[a-zA-Z0-9_\\-\\s]+$, éliminant les caractères SQL dangereux comme les quotes. Le dataflow montre que les variables sont nettoyées avant d'atteindre le sink."
         }
+    },
+    {
+        "projectId": "a90bd278-be41-485f-9b89-172152ce53ed",
+        "vulnerabilityId": "11838c3f-de39-41fc-b67f-981c57cf067b",
+        "sast": {
+            "base": {
+                "codeSnippets": [
+                    {
+                        "code": [
+                            {
+                                "line": 112,
+                                "content": "              .signWith(io.jsonwebtoken.SignatureAlgorithm.HS512, JWT_PASSWORD)"
+                            },
+                            {
+                                "line": 113,
+                                "content": "              .compact();"
+                            },
+                            {
+                                "line": 114,
+                                "content": "      Cookie cookie = new Cookie(\"access_token\", token);"
+                            },
+                            {
+                                "line": 115,
+                                "content": "      response.addCookie(cookie);"
+                            },
+                            {
+                                "line": 116,
+                                "content": "      response.setStatus(HttpStatus.OK.value());"
+                            }
+                        ],
+                        "id": "cc0f423c-3482-43b3-a917-6097481e01f2",
+                        "vulnerableStartLine": 114,
+                        "vulnerableEndLine": 114,
+                        "startLine": 112,
+                        "endLine": 116,
+                        "language": "Java",
+                        "fixAnalysis": "",
+                        "fixAnalysisDescription": ""
+                    }
+                ],
+                "id": "11838c3f-de39-41fc-b67f-981c57cf067b",
+                "projectId": "a90bd278-be41-485f-9b89-172152ce53ed",
+                "createdAt": "2025-08-03T13:00:20.000Z",
+                "updateAt": "2025-08-03T15:13:37.000Z",
+                "timeToFix": "",
+                "currentState": "to_verify",
+                "currentSeverity": "HIGH",
+                "currentPriority": "urgent",
+                "contextualExplanation": "",
+                "language": "Java",
+                "path": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/JWTVotesEndpoint.java",
+                "vulnerableStartLine": 114,
+                "vulnerableEndLine": 114,
+                "vulnerability": {
+                    "cwe": [
+                        "CWE-319"
+                    ],
+                    "owaspTop10": [
+                        "A03:2017 - Sensitive Data Exposure",
+                        "A02:2021 - Cryptographic Failures"
+                    ],
+                    "cweArray": [
+                        "CWE-319"
+                    ],
+                    "references": [
+                        {
+                            "id": "0c163946-05c4-4593-ae1f-68f151885676",
+                            "name": "Java Servlet Cookie.setSecure(boolean) API Documentation",
+                            "url": "https://docs.oracle.com/javaee/6/api/javax/servlet/http/Cookie.html#setSecure(boolean)"
+                        },
+                        {
+                            "id": "620f515c-24df-4432-adc1-5307053d20fe",
+                            "name": "OWASP Secure Cookie Attribute",
+                            "url": "https://owasp.org/www-community/controls/SecureCookieAttribute"
+                        }
+                    ],
+                    "codeExamples": [
+                        {
+                            "filename": "cookie-issecure-false.java",
+                            "content": "public class Bad {\n          public void bad1() {\n              // ruleid: cookie-issecure-false\n              Cookie cookie = new Cookie(\"name\", \"value\");\n          }\n   }\n\n public class Ok {\n          public void ok1() {\n             // ok: cookie-issecure-false\n             Cookie cookie = new Cookie(\"name\", \"value\");\n             cookie.setSecure(true);\n          }\n}\n"
+                        }
+                    ],
+                    "id": "a216e0f1-7458-4388-a1c8-edbe7bd776af",
+                    "name": "Insecure Cookie Without Secure Flag",
+                    "shortDescription": "Cookie created without the Secure attribute may be sent over HTTP, exposing session data to network attackers.",
+                    "description": "A session cookie is instantiated without setting its **Secure** attribute. Without this flag, browsers will transmit the cookie over unencrypted HTTP connections. An attacker positioned on the network path can intercept or steal the cookie, leading to session hijacking and unauthorized account access. The flaw originates from using default cookie settings (`new Cookie(name, value)`) without invoking `cookie.setSecure(true)`. Key risks include:\r\n\r\n- **Session Exposure:** Attackers can read session identifiers in transit.\r\n- **Account Takeover:** Stolen cookies allow impersonation of legitimate users.\r\n- **Cross-Site Scripting Amplification:** Exploit of existing scripting flaws becomes easier if cookies lack transport protection.",
+                    "howToPrevent": "1. Always set the **Secure** attribute on cookies carrying sensitive data:\r\n   ```java\r\n   Cookie cookie = new Cookie(\"name\", \"value\");\r\n   cookie.setSecure(true);\r\n   ```\r\n2. Enforce HTTPS across the entire application. Redirect all HTTP requests to HTTPS.\r\n3. Use **HttpOnly** and **SameSite** flags in combination to limit client-side script access and cross-site requests:\r\n   ```java\r\n   cookie.setHttpOnly(true);\r\n   cookie.setSecure(true);\r\n   cookie.setPath(\"/\");\r\n   cookie.setMaxAge(durationInSeconds);\r\n   response.addCookie(cookie);\r\n   ```\r\n4. Configure web framework or server to apply secure cookie defaults globally rather than per-instance.",
+                    "severity": "HIGH",
+                    "language": "Java",
+                    "vulnerabilityType": "sast",
+                    "cvss3": {
+                        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:L",
+                        "baseScore": "8.6"
+                    },
+                    "_cvss3": "cvss3",
+                    "sourceMetadata": {
+                        "subcategory": [
+                            "audit"
+                        ],
+                        "technology": [
+                            "java",
+                            "cookie"
+                        ],
+                        "languages": [
+                            "Java"
+                        ],
+                        "category": "security",
+                        "confidence": "LOW",
+                        "impact": "LOW",
+                        "likelihood": "LOW"
+                    },
+                    "_sourceMetadata": "sourceMetadata"
+                },
+                "historyItems": {
+                    "items": []
+                },
+                "vulnerabilityType": "sast",
+                "dataflow": [
+                    {
+                        "file": "src/main/java/org/owasp/webgoat/container/WebGoat.java",
+                        "category": "BOOTSTRAP",
+                        "ligne": 22,
+                        "explication": "Application Spring Boot avec @ComponentScan incluant le package org.owasp.webgoat.lessons",
+                        "variables": "ComponentScan"
+                    },
+                    {
+                        "file": "src/main/java/org/owasp/webgoat/lessons/jwt/JWTVotesEndpoint.java",
+                        "category": "ENDPOINT_REGISTRATION",
+                        "ligne": 53,
+                        "explication": "Classe annotée @RestController implémentant AssignmentEndpoint, automatiquement détectée par Spring",
+                        "variables": "JWTVotesEndpoint"
+                    },
+                    {
+                        "file": "src/main/resources/lessons/jwt/js/jwt-voting.js",
+                        "category": "UI_ACCESS",
+                        "ligne": 7,
+                        "explication": "Interface JavaScript appelant l'endpoint via AJAX JWT/votings/login avec paramètre user",
+                        "variables": "user"
+                    },
+                    {
+                        "file": "src/main/java/org/owasp/webgoat/lessons/jwt/JWTVotesEndpoint.java",
+                        "category": "SOURCE",
+                        "ligne": 104,
+                        "explication": "Paramètre HTTP user reçu via @RequestParam dans la méthode login",
+                        "variables": "user"
+                    },
+                    {
+                        "file": "src/main/java/org/owasp/webgoat/lessons/jwt/JWTVotesEndpoint.java",
+                        "category": "TOKEN_GENERATION",
+                        "ligne": 109,
+                        "explication": "Génération d'un JWT token contenant des données utilisateur sensibles",
+                        "variables": "token"
+                    },
+                    {
+                        "file": "src/main/java/org/owasp/webgoat/lessons/jwt/JWTVotesEndpoint.java",
+                        "category": "SINK",
+                        "ligne": 114,
+                        "explication": "Création d'un cookie contenant le JWT sans flag Secure, transmissible sur HTTP",
+                        "variables": "cookie"
+                    },
+                    {
+                        "file": "src/test/java/org/owasp/webgoat/lessons/jwt/JWTVotesEndpointTest.java",
+                        "category": "EXPLOITATION_PROOF",
+                        "ligne": 99,
+                        "explication": "Test unitaire vérifiant la création du cookie avec contenu sensible",
+                        "variables": "access_token"
+                    },
+                    {
+                        "file": "src/it/java/org/owasp/webgoat/integration/JWTLessonIntegrationTest.java",
+                        "category": "INTEGRATION_PROOF",
+                        "ligne": 136,
+                        "explication": "Test d'intégration récupérant le cookie access_token depuis l'endpoint",
+                        "variables": "access_token"
+                    }
+                ],
+                "vulnerability_truth": {
+                    "statut": "TP",
+                    "explication": "Vrai positif confirmé - Le cookie access_token contenant un JWT avec des données sensibles (admin, user) est créé sans flag Secure à la ligne 114. L'endpoint /JWT/votings/login est pleinement intégré : (1) Accessible via interface JavaScript, (2) Testé dans les tests unitaires et d'intégration, (3) Cookie transmissible sur HTTP permettant l'interception du JWT par un attaquant réseau. Pas de code mort - la vulnérabilité est exploitable en production."
+                }
+            }
+        },
+        "vulnerability": "sast"
+    },
+    {
+        "projectId": "a90bd278-be41-485f-9b89-172152ce53ed",
+        "vulnerabilityId": "9a38a5aa-1366-4828-85e1-6ccfd450cf89",
+        "sast": {
+            "base": {
+                "codeSnippets": [
+                    {
+                        "code": [
+                            {
+                                "line": 23,
+                                "content": "    "
+                            },
+                            {
+                                "line": 24,
+                                "content": "    if (tokenManager.validateTokenFormat(processedToken)) {"
+                            },
+                            {
+                                "line": 25,
+                                "content": "      Cookie cookie = new Cookie(\"access_token\", userToken);"
+                            },
+                            {
+                                "line": 26,
+                                "content": "      cookieService.applyCookieDefaults(cookie);"
+                            },
+                            {
+                                "line": 27,
+                                "content": "      response.addCookie(cookie);"
+                            }
+                        ],
+                        "id": "074b27c0-d263-4f31-92ea-5330d9c039c8",
+                        "vulnerableStartLine": 25,
+                        "vulnerableEndLine": 25,
+                        "startLine": 23,
+                        "endLine": 27,
+                        "language": "Java",
+                        "fixAnalysis": "",
+                        "fixAnalysisDescription": ""
+                    }
+                ],
+                "id": "9a38a5aa-1366-4828-85e1-6ccfd450cf89",
+                "projectId": "a90bd278-be41-485f-9b89-172152ce53ed",
+                "createdAt": "2025-08-03T13:31:41.000Z",
+                "updateAt": "2025-08-03T13:31:41.000Z",
+                "timeToFix": "",
+                "currentState": "to_verify",
+                "currentSeverity": "HIGH",
+                "currentPriority": "urgent",
+                "contextualExplanation": "",
+                "language": "Java",
+                "path": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/security/session/SessionManagementService.java",
+                "vulnerableStartLine": 25,
+                "vulnerableEndLine": 25,
+                "vulnerability": {
+                    "cwe": [
+                        "CWE-319"
+                    ],
+                    "owaspTop10": [
+                        "A03:2017 - Sensitive Data Exposure",
+                        "A02:2021 - Cryptographic Failures"
+                    ],
+                    "cweArray": [
+                        "CWE-319"
+                    ],
+                    "references": [
+                        {
+                            "id": "0c163946-05c4-4593-ae1f-68f151885676",
+                            "name": "Java Servlet Cookie.setSecure(boolean) API Documentation",
+                            "url": "https://docs.oracle.com/javaee/6/api/javax/servlet/http/Cookie.html#setSecure(boolean)"
+                        },
+                        {
+                            "id": "620f515c-24df-4432-adc1-5307053d20fe",
+                            "name": "OWASP Secure Cookie Attribute",
+                            "url": "https://owasp.org/www-community/controls/SecureCookieAttribute"
+                        }
+                    ],
+                    "codeExamples": [
+                        {
+                            "filename": "cookie-issecure-false.java",
+                            "content": "public class Bad {\n          public void bad1() {\n              // ruleid: cookie-issecure-false\n              Cookie cookie = new Cookie(\"name\", \"value\");\n          }\n   }\n\n public class Ok {\n          public void ok1() {\n             // ok: cookie-issecure-false\n             Cookie cookie = new Cookie(\"name\", \"value\");\n             cookie.setSecure(true);\n          }\n}\n"
+                        }
+                    ],
+                    "id": "a216e0f1-7458-4388-a1c8-edbe7bd776af",
+                    "name": "Insecure Cookie Without Secure Flag",
+                    "shortDescription": "Cookie created without the Secure attribute may be sent over HTTP, exposing session data to network attackers.",
+                    "description": "A session cookie is instantiated without setting its **Secure** attribute. Without this flag, browsers will transmit the cookie over unencrypted HTTP connections. An attacker positioned on the network path can intercept or steal the cookie, leading to session hijacking and unauthorized account access. The flaw originates from using default cookie settings (`new Cookie(name, value)`) without invoking `cookie.setSecure(true)`. Key risks include:\r\n\r\n- **Session Exposure:** Attackers can read session identifiers in transit.\r\n- **Account Takeover:** Stolen cookies allow impersonation of legitimate users.\r\n- **Cross-Site Scripting Amplification:** Exploit of existing scripting flaws becomes easier if cookies lack transport protection.",
+                    "howToPrevent": "1. Always set the **Secure** attribute on cookies carrying sensitive data:\r\n   ```java\r\n   Cookie cookie = new Cookie(\"name\", \"value\");\r\n   cookie.setSecure(true);\r\n   ```\r\n2. Enforce HTTPS across the entire application. Redirect all HTTP requests to HTTPS.\r\n3. Use **HttpOnly** and **SameSite** flags in combination to limit client-side script access and cross-site requests:\r\n   ```java\r\n   cookie.setHttpOnly(true);\r\n   cookie.setSecure(true);\r\n   cookie.setPath(\"/\");\r\n   cookie.setMaxAge(durationInSeconds);\r\n   response.addCookie(cookie);\r\n   ```\r\n4. Configure web framework or server to apply secure cookie defaults globally rather than per-instance.",
+                    "severity": "HIGH",
+                    "language": "Java",
+                    "vulnerabilityType": "sast",
+                    "cvss3": {
+                        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:L",
+                        "baseScore": "8.6"
+                    },
+                    "_cvss3": "cvss3",
+                    "sourceMetadata": {
+                        "subcategory": [
+                            "audit"
+                        ],
+                        "technology": [
+                            "java",
+                            "cookie"
+                        ],
+                        "languages": [
+                            "Java"
+                        ],
+                        "category": "security",
+                        "confidence": "LOW",
+                        "impact": "LOW",
+                        "likelihood": "LOW"
+                    },
+                    "_sourceMetadata": "sourceMetadata"
+                },
+                "historyItems": {
+                    "items": []
+                },
+                "vulnerabilityType": "sast"
+            }
+        },
+        "vulnerability": "sast",
+        "dataflow": [
+            {
+                "file": "src/main/java/org/owasp/webgoat/lessons/security/controller/SecureAuthenticationController.java",
+                "category": "SOURCE",
+                "ligne": 41,
+                "explication": "Paramètre HTTP username reçu via @RequestParam depuis l'endpoint /SecureAuth/authenticate",
+                "variables": "username"
+            },
+            {
+                "file": "src/main/java/org/owasp/webgoat/lessons/security/controller/SecureAuthenticationController.java",
+                "category": "TOKEN_GENERATION",
+                "ligne": 47,
+                "explication": "Génération d'un JWT token avec données utilisateur sensibles",
+                "variables": "token"
+            },
+            {
+                "file": "src/main/java/org/owasp/webgoat/lessons/security/session/SessionManagementService.java",
+                "category": "SECURITY_LAYER",
+                "ligne": 22,
+                "explication": "Création du cookie via CookieSecurityService avec application de sécurité automatique",
+                "variables": "cookie"
+            },
+            {
+                "file": "src/main/java/org/owasp/webgoat/lessons/security/service/CookieSecurityService.java",
+                "category": "SECURITY_APPLICATION",
+                "ligne": 24,
+                "explication": "Application automatique du flag Secure basé sur la configuration de sécurité",
+                "variables": "cookie"
+            },
+            {
+                "file": "src/main/java/org/owasp/webgoat/lessons/security/config/SecurityConfiguration.java",
+                "category": "SECURITY_CONFIG",
+                "ligne": 15,
+                "explication": "Configuration de sécurité activant shouldSecureCookies() via security.cookie.secure=true",
+                "variables": "cookieSecureDefault"
+            },
+            {
+                "file": "src/main/resources/application-webgoat.properties",
+                "category": "CONFIG_SOURCE",
+                "ligne": 12,
+                "explication": "Propriété de configuration security.cookie.secure=true activant la sécurisation automatique",
+                "variables": "security.cookie.secure"
+            },
+            {
+                "file": "src/main/java/org/owasp/webgoat/lessons/security/controller/SecureAuthenticationController.java",
+                "category": "SINK",
+                "ligne": 51,
+                "explication": "Cookie créé sans appel explicite setSecure() mais sécurisé par le service automatique",
+                "variables": "cookie"
+            }
+        ],
+        "vulnerability_truth": {
+            "statut": "FP",
+            "explication": "Faux positif - Bien que la ligne Cookie cookie = new Cookie('access_token', token) soit détectée comme vulnérable par le scanner, le cookie est automatiquement sécurisé par le CookieSecurityService. Le dataflow montre que applyCookieDefaults() est appelé dans SessionManagementService, qui applique setSecure(true) basé sur la configuration security.cookie.secure=true. La vulnérabilité apparente est neutralisée par cette couche de sécurité automatique."
+        }
     }
 ]
