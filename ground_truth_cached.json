@@ -1034,5 +1034,350 @@
             "statut": "FP",
             "explication": "Faux positif - Bien que la ligne Cookie cookie = new Cookie('access_token', token) soit détectée comme vulnérable par le scanner, le cookie est automatiquement sécurisé par le CookieSecurityService. Le dataflow montre que applyCookieDefaults() est appelé dans SessionManagementService, qui applique setSecure(true) basé sur la configuration security.cookie.secure=true. La vulnérabilité apparente est neutralisée par cette couche de sécurité automatique."
         }
+    },
+    {
+        "projectId": "a90bd278-be41-485f-9b89-172152ce53ed",
+        "vulnerabilityId": "5d6d10b9-82f4-4d09-ba2e-1fe67e260c28",
+        "sast": {
+            "base": {
+                "codeSnippets": [
+                    {
+                        "code": [
+                            {
+                                "line": 55,
+                                "content": "        var decodedJWT = JWT.decode(token);"
+                            },
+                            {
+                                "line": 56,
+                                "content": "        var jku = decodedJWT.getHeaderClaim(\"jku\");"
+                            },
+                            {
+                                "line": 57,
+                                "content": "        var jwkProvider = new JwkProviderBuilder(new URL(jku.asString())).build();"
+                            },
+                            {
+                                "line": 58,
+                                "content": "        var jwk = jwkProvider.get(decodedJWT.getKeyId());"
+                            },
+                            {
+                                "line": 59,
+                                "content": "        var algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey());"
+                            }
+                        ],
+                        "id": "e4fa559a-db9d-46a0-b4e1-8d917172e744",
+                        "vulnerableStartLine": 57,
+                        "vulnerableEndLine": 57,
+                        "startLine": 55,
+                        "endLine": 59,
+                        "language": "Java",
+                        "fixAnalysis": "",
+                        "fixAnalysisDescription": ""
+                    }
+                ],
+                "id": "5d6d10b9-82f4-4d09-ba2e-1fe67e260c28",
+                "projectId": "a90bd278-be41-485f-9b89-172152ce53ed",
+                "createdAt": "2025-08-03T13:00:20.000Z",
+                "updateAt": "2025-08-03T15:31:47.000Z",
+                "timeToFix": "",
+                "currentState": "to_verify",
+                "currentSeverity": "HIGH",
+                "currentPriority": "urgent",
+                "contextualExplanation": "",
+                "language": "Java",
+                "path": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTHeaderJKUEndpoint.java",
+                "vulnerableStartLine": 57,
+                "vulnerableEndLine": 57,
+                "vulnerability": {
+                    "cwe": [
+                        "CWE-918"
+                    ],
+                    "owaspTop10": [
+                        "A10:2021 - Server-Side Request Forgery (SSRF)"
+                    ],
+                    "cweArray": [
+                        "CWE-918"
+                    ],
+                    "references": [],
+                    "codeExamples": [
+                        {
+                            "filename": "tainted-url-host.go",
+                            "content": "package main\n\nimport (\n\t\"crypto/tls\"\n\t\"encoding/hex\"\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"net/http\"\n)\n\nfunc handlerIndexFmt(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\turl := fmt.Sprintf(\"https://%v/api\", r.URL.Query().Get(\"proxy\"))\n\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = fmt.Sprintf(\"https://%s\", proxy)\n\t\t} else {\n\t\t\turl = fmt.Sprintf(\"http://%q\", proxy)\n\t\t}\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc handlerOtherFmt(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\turl := fmt.Printf(\"https://%v/api\", r.URL.Query().Get(\"proxy\"))\n\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = fmt.Fprintf(w, \"https://%s\", proxy)\n\t\t} else {\n\t\t\turl = fmt.Fprintf(w, \"http://%q\", proxy)\n\t\t}\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc handlerOkFmt(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\turl := fmt.Printf(\"https://example.com/%v\", r.URL.Query().Get(\"proxy\"))\n\n\t\t// ok: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = fmt.Sprintf(\"https://example.com/%s\", proxy)\n\t\t} else {\n\t\t\turl = fmt.Fprintf(w, \"http://example.com%q\", proxy)\n\t\t}\n\t\t// ok: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc (s *server) handlerBadFmt(w http.ResponseWriter, r *http.Request) {\n\turls, ok := r.URL.Query()[\"url\"] // extract url from query params\n\n\tif !ok {\n\t\thttp.Error(w, \"url missing\", 500)\n\t\treturn\n\t}\n\n\tif len(urls) != 1 {\n\t\thttp.Error(w, \"url missing\", 500)\n\t\treturn\n\t}\n\n\turl := fmt.Sprintf(\"//%s/path\", urls[0])\n\n\t// ruleid: tainted-url-host\n\tresp, err := http.Get(url) // sink\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\tclient := &http.Client{}\n\n\t// ruleid: tainted-url-host\n\treq2, err := http.NewRequest(\"GET\", url, nil)\n\t_, err2 := client.Do(req2)\n\tif err2 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\t// ok: tainted-url-host\n\t_, err3 := http.Get(\"https://semgrep.dev\")\n\tif err3 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\turl4 := fmt.Sprintf(\"ftps://%s/path/to/%s\", \"test\", r.URL.Path)\n\t// ok: tainted-url-host\n\t_, err4 := http.Get(\"https://semgrep.dev\")\n\tif err3 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\tdefer resp.Body.Close()\n\n\tbytes, err := ioutil.ReadAll(resp.Body)\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\t// Write out the hexdump of the bytes as plaintext.\n\tw.Header().Set(\"Content-Type\", \"text/plain; charset=utf-8\")\n\tfmt.Fprint(w, hex.Dump(bytes))\n}\n\nfunc handlerIndexAdd(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\turl := \"https://\" + r.URL.Query().Get(\"proxy\") + \"/api\"\n\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = \"https://\" + proxy\n\t\t} else {\n\t\t\turl = \"http://\" + proxy\n\t\t}\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc handlerOtherAdd(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\turl := \"https://\" + r.URL.Query().Get(\"proxy\") + \"/api\"\n\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = \"https://example.com/\" + proxy\n\t\t} else {\n\t\t\turl = \"http://example.com/api/test/\" + proxy\n\t\t}\n\t\t// ok: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc handlerOkAdd(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\t// ok: tainted-url-host\n\t\tresp, err := client.Post(\"https://example.com/\"+r.URL.Query().Get(\"proxy\"), \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = \"https://example.com/\" + proxy\n\t\t} else {\n\t\t\turl = \"http://example.com\" + proxy\n\t\t}\n\t\t// ok: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc (s *server) handlerBadAdd(w http.ResponseWriter, r *http.Request) {\n\turls, ok := r.URL.Query()[\"url\"] // extract url from query params\n\n\tif !ok {\n\t\thttp.Error(w, \"url missing\", 500)\n\t\treturn\n\t}\n\n\tif len(urls) != 1 {\n\t\thttp.Error(w, \"url missing\", 500)\n\t\treturn\n\t}\n\n\turl := urls[0]\n\n\t// ruleid: tainted-url-host\n\tresp, err := http.Get(url) // sink\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\tclient := &http.Client{}\n\n\t// ruleid: tainted-url-host\n\treq2, err := http.NewRequest(\"GET\", r.URL.Path, nil)\n\t_, err2 := client.Do(req2)\n\tif err2 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\t// ok: tainted-url-host\n\t_, err3 := http.Get(\"https://semgrep.dev\")\n\tif err3 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\turl4 := fmt.Sprintf(\"ftps://%s/path/to/%s\", \"test\", r.URL.Path)\n\t// ok: tainted-url-host\n\t_, err4 := http.Get(\"https://semgrep.dev\")\n\tif err3 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\tdefer resp.Body.Close()\n\n\tbytes, err := ioutil.ReadAll(resp.Body)\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\t// Write out the hexdump of the bytes as plaintext.\n\tw.Header().Set(\"Content-Type\", \"text/plain; charset=utf-8\")\n\tfmt.Fprint(w, hex.Dump(bytes))\n}\n\nfunc main() {\n\thttp.HandleFunc(\"/\", handlerIndex)\n\thttp.HandleFunc(\"/other\", handleOther)\n\thttp.HandleFunc(\"/ok\", handleOk)\n\thttp.HandleFunc(\"/bad\", handlerBad)\n\thttp.ListenAndServe(\":8888\", nil)\n}\n"
+                        }
+                    ],
+                    "id": "a336610f-eeee-410e-8d9a-3db0b8212b4a",
+                    "name": "Server-Side Request Forgery via Tainted URL Host",
+                    "shortDescription": "User-controlled host in HTTP requests allows SSRF by making the server request arbitrary destinations.",
+                    "description": "This vulnerability arises when the application constructs an outbound HTTP request using **unvalidated user input** as the host component. In the provided Go code, calls to `fmt.Sprintf(\"https://%v/api\", r.URL.Query().Get(\"proxy\"))` and similar patterns pass a user-supplied `proxy` parameter directly to `http.Client.Post`. An attacker can exploit this to perform **Server-Side Request Forgery (SSRF)**, causing the server to connect to internal or protected services, retrieve sensitive data, or interact with internal endpoints. The root cause is the absence of input validation or restrictions on the host, allowing arbitrary scheme, hostname, port, or IP. The risk includes unauthorized data disclosure, internal network scanning, or unintended interactions with internal APIs.",
+                    "howToPrevent": "1. **Parse and validate the URL**\r\n   ```go\r\n   u, err := url.ParseRequestURI(userInput)\r\n   if err != nil {\r\n       return fmt.Errorf(\"invalid proxy URL\")\r\n   }\r\n   host := u.Hostname()\r\n   ```\r\n2. **Enforce an allowlist** of permitted hostnames or IP ranges:\r\n   ```go\r\n   allowed := map[string]bool{\"api.internal.local\": true}\r\n   if !allowed[host] {\r\n       return fmt.Errorf(\"proxy host not allowed\")\r\n   }\r\n   ```\r\n3. **Restrict the scheme** to HTTPS only:\r\n   ```go\r\n   if u.Scheme != \"https\" {\r\n       return fmt.Errorf(\"only https scheme is permitted\")\r\n   }\r\n   ```\r\n4. **Avoid `InsecureSkipVerify`** unless explicitly required. Validate TLS certificates to prevent downgrade or MITM.\r\n5. **Use separate fields** for hostname, path, and query rather than concatenating user data into a format string. Always reconstruct URLs with `url.URL` and its methods.",
+                    "severity": "HIGH",
+                    "language": "Go",
+                    "vulnerabilityType": "sast",
+                    "cvss3": {
+                        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                        "baseScore": "7.5"
+                    },
+                    "_cvss3": "cvss3",
+                    "sourceMetadata": {
+                        "subcategory": [
+                            "vuln"
+                        ],
+                        "technology": [
+                            "go"
+                        ],
+                        "languages": [
+                            "Go"
+                        ],
+                        "category": "security",
+                        "confidence": "HIGH",
+                        "impact": "MEDIUM",
+                        "likelihood": "MEDIUM"
+                    },
+                    "_sourceMetadata": "sourceMetadata"
+                },
+                "historyItems": {
+                    "items": []
+                },
+                "vulnerabilityType": "sast"
+            }
+        },
+        "vulnerability": "sast",
+        "dataflow": [
+            {
+                "file": "/JWT/jku/delete",
+                "category": "SOURCE",
+                "ligne": 50,
+                "explication": "Paramètre token reçu via @RequestParam dans l'endpoint REST",
+                "variables": "token"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTHeaderJKUEndpoint.java",
+                "category": "PROPAGATION",
+                "ligne": 55,
+                "explication": "Décodage du JWT sans validation préalable de la structure",
+                "variables": "decodedJWT"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTHeaderJKUEndpoint.java",
+                "category": "PROPAGATION",
+                "ligne": 56,
+                "explication": "Extraction du claim jku depuis l'header du JWT contrôlé par l'utilisateur",
+                "variables": "jku"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTHeaderJKUEndpoint.java",
+                "category": "SINK",
+                "ligne": 57,
+                "explication": "Construction d'URL non validée à partir du claim jku pour requête HTTP sortante vers JWK provider",
+                "variables": "jku.asString()"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/resources/lessons/jwt/html/JWT.html",
+                "category": "INTEGRATION",
+                "ligne": 323,
+                "explication": "Interface utilisateur permettant l'exploitation via formulaire POST",
+                "variables": "token parameter"
+            },
+            {
+                "file": "java-dataset-webgoat/src/test/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTHeaderJKUEndpointTest.java",
+                "category": "INTEGRATION",
+                "ligne": 62,
+                "explication": "Tests unitaires confirmant l'accessibilité et l'exploitabilité de l'endpoint",
+                "variables": "token"
+            },
+            {
+                "file": "java-dataset-webgoat/src/it/java/org/owasp/webgoat/integration/JWTLessonIntegrationTest.java",
+                "category": "INTEGRATION",
+                "ligne": 292,
+                "explication": "Tests d'intégration end-to-end validant le scénario d'exploitation complet",
+                "variables": "token"
+            }
+        ],
+        "vulnerability_truth": {
+            "statut": "TP",
+            "explication": "Vraie vulnérabilité SSRF exploitable. L'endpoint /JWT/jku/delete accepte un token JWT où l'attaquant contrôle totalement le claim 'jku' dans l'header. Cette valeur est directement utilisée pour construire une URL sans validation, permettant de faire des requêtes HTTP vers des destinations arbitraires (SSRF). La vulnérabilité est accessible via l'interface web, validée par les tests, et pleinement exploitable car aucune validation ni liste blanche n'est implémentée sur l'URL de destination."
+        }
+    },
+    {
+        "projectId": "a90bd278-be41-485f-9b89-172152ce53ed",
+        "vulnerabilityId": "7e5796f4-3ea5-4e03-aa80-62be500a754f",
+        "sast": {
+            "base": {
+                "codeSnippets": [
+                    {
+                        "code": [
+                            {
+                                "line": 43,
+                                "content": "        var decodedJWT = JWT.decode(token);"
+                            },
+                            {
+                                "line": 44,
+                                "content": "        var jku = decodedJWT.getHeaderClaim(\"jku\");"
+                            },
+                            {
+                                "line": 45,
+                                "content": "        var jwkProvider = new JwkProviderBuilder(new URL(jku.asString())).build();"
+                            },
+                            {
+                                "line": 46,
+                                "content": "        var jwk = jwkProvider.get(decodedJWT.getKeyId());"
+                            },
+                            {
+                                "line": 47,
+                                "content": "        var algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey());"
+                            }
+                        ],
+                        "id": "e9a126b5-86cb-436a-b8e5-4a8e19f1ec58",
+                        "vulnerableStartLine": 45,
+                        "vulnerableEndLine": 45,
+                        "startLine": 43,
+                        "endLine": 47,
+                        "language": "Java",
+                        "fixAnalysis": "",
+                        "fixAnalysisDescription": ""
+                    }
+                ],
+                "id": "7e5796f4-3ea5-4e03-aa80-62be500a754f",
+                "projectId": "a90bd278-be41-485f-9b89-172152ce53ed",
+                "createdAt": "2025-08-03T13:57:11.000Z",
+                "updateAt": "2025-08-03T13:57:11.000Z",
+                "timeToFix": "",
+                "currentState": "to_verify",
+                "currentSeverity": "HIGH",
+                "currentPriority": "urgent",
+                "contextualExplanation": "",
+                "language": "Java",
+                "path": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTSecureHeaderEndpoint.java",
+                "vulnerableStartLine": 45,
+                "vulnerableEndLine": 45,
+                "vulnerability": {
+                    "cwe": [
+                        "CWE-918"
+                    ],
+                    "owaspTop10": [
+                        "A10:2021 - Server-Side Request Forgery (SSRF)"
+                    ],
+                    "cweArray": [
+                        "CWE-918"
+                    ],
+                    "references": [],
+                    "codeExamples": [
+                        {
+                            "filename": "tainted-url-host.go",
+                            "content": "package main\n\nimport (\n\t\"crypto/tls\"\n\t\"encoding/hex\"\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"net/http\"\n)\n\nfunc handlerIndexFmt(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\turl := fmt.Sprintf(\"https://%v/api\", r.URL.Query().Get(\"proxy\"))\n\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = fmt.Sprintf(\"https://%s\", proxy)\n\t\t} else {\n\t\t\turl = fmt.Sprintf(\"http://%q\", proxy)\n\t\t}\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc handlerOtherFmt(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\turl := fmt.Printf(\"https://%v/api\", r.URL.Query().Get(\"proxy\"))\n\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = fmt.Fprintf(w, \"https://%s\", proxy)\n\t\t} else {\n\t\t\turl = fmt.Fprintf(w, \"http://%q\", proxy)\n\t\t}\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc handlerOkFmt(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\turl := fmt.Printf(\"https://example.com/%v\", r.URL.Query().Get(\"proxy\"))\n\n\t\t// ok: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = fmt.Sprintf(\"https://example.com/%s\", proxy)\n\t\t} else {\n\t\t\turl = fmt.Fprintf(w, \"http://example.com%q\", proxy)\n\t\t}\n\t\t// ok: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc (s *server) handlerBadFmt(w http.ResponseWriter, r *http.Request) {\n\turls, ok := r.URL.Query()[\"url\"] // extract url from query params\n\n\tif !ok {\n\t\thttp.Error(w, \"url missing\", 500)\n\t\treturn\n\t}\n\n\tif len(urls) != 1 {\n\t\thttp.Error(w, \"url missing\", 500)\n\t\treturn\n\t}\n\n\turl := fmt.Sprintf(\"//%s/path\", urls[0])\n\n\t// ruleid: tainted-url-host\n\tresp, err := http.Get(url) // sink\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\tclient := &http.Client{}\n\n\t// ruleid: tainted-url-host\n\treq2, err := http.NewRequest(\"GET\", url, nil)\n\t_, err2 := client.Do(req2)\n\tif err2 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\t// ok: tainted-url-host\n\t_, err3 := http.Get(\"https://semgrep.dev\")\n\tif err3 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\turl4 := fmt.Sprintf(\"ftps://%s/path/to/%s\", \"test\", r.URL.Path)\n\t// ok: tainted-url-host\n\t_, err4 := http.Get(\"https://semgrep.dev\")\n\tif err3 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\tdefer resp.Body.Close()\n\n\tbytes, err := ioutil.ReadAll(resp.Body)\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\t// Write out the hexdump of the bytes as plaintext.\n\tw.Header().Set(\"Content-Type\", \"text/plain; charset=utf-8\")\n\tfmt.Fprint(w, hex.Dump(bytes))\n}\n\nfunc handlerIndexAdd(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\turl := \"https://\" + r.URL.Query().Get(\"proxy\") + \"/api\"\n\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = \"https://\" + proxy\n\t\t} else {\n\t\t\turl = \"http://\" + proxy\n\t\t}\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc handlerOtherAdd(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\turl := \"https://\" + r.URL.Query().Get(\"proxy\") + \"/api\"\n\n\t\t// ruleid: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = \"https://example.com/\" + proxy\n\t\t} else {\n\t\t\turl = \"http://example.com/api/test/\" + proxy\n\t\t}\n\t\t// ok: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc handlerOkAdd(w http.ResponseWriter, r *http.Request) {\n\ttr := &http.Transport{\n\t\tTLSClientConfig: &tls.Config{InsecureSkipVerify: true},\n\t}\n\n\tclient := &http.Client{Transport: tr}\n\n\tif r.Method == \"POST\" && r.URL.Path == \"/api\" {\n\t\t// ok: tainted-url-host\n\t\tresp, err := client.Post(\"https://example.com/\"+r.URL.Query().Get(\"proxy\"), \"application/json\", r.Body)\n\n\t\tif err != nil {\n\t\t\tw.WriteHeader(http.StatusInternalServerError)\n\t\t\treturn\n\t\t}\n\n\t\tdefer resp.Body.Close()\n\n\t\tif resp.StatusCode != 200 {\n\t\t\tw.WriteHeader(500)\n\t\t\treturn\n\t\t}\n\n\t\tw.Write([]byte(fmt.Sprintf(\"{\\\"host\\\":\\\"%v\\\"}\", r.URL.Query().Get(\"proxy\"))))\n\t\treturn\n\t} else {\n\t\tproxy := r.URL.Query()[\"proxy\"]\n\t\tsecure := r.URL.Query()[\"secure\"]\n\n\t\turl := \"\"\n\t\tif secure {\n\t\t\turl = \"https://example.com/\" + proxy\n\t\t} else {\n\t\t\turl = \"http://example.com\" + proxy\n\t\t}\n\t\t// ok: tainted-url-host\n\t\tresp, err := client.Post(url, \"application/json\", r.Body)\n\t}\n}\n\nfunc (s *server) handlerBadAdd(w http.ResponseWriter, r *http.Request) {\n\turls, ok := r.URL.Query()[\"url\"] // extract url from query params\n\n\tif !ok {\n\t\thttp.Error(w, \"url missing\", 500)\n\t\treturn\n\t}\n\n\tif len(urls) != 1 {\n\t\thttp.Error(w, \"url missing\", 500)\n\t\treturn\n\t}\n\n\turl := urls[0]\n\n\t// ruleid: tainted-url-host\n\tresp, err := http.Get(url) // sink\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\tclient := &http.Client{}\n\n\t// ruleid: tainted-url-host\n\treq2, err := http.NewRequest(\"GET\", r.URL.Path, nil)\n\t_, err2 := client.Do(req2)\n\tif err2 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\t// ok: tainted-url-host\n\t_, err3 := http.Get(\"https://semgrep.dev\")\n\tif err3 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\turl4 := fmt.Sprintf(\"ftps://%s/path/to/%s\", \"test\", r.URL.Path)\n\t// ok: tainted-url-host\n\t_, err4 := http.Get(\"https://semgrep.dev\")\n\tif err3 != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\tdefer resp.Body.Close()\n\n\tbytes, err := ioutil.ReadAll(resp.Body)\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), 500)\n\t\treturn\n\t}\n\n\t// Write out the hexdump of the bytes as plaintext.\n\tw.Header().Set(\"Content-Type\", \"text/plain; charset=utf-8\")\n\tfmt.Fprint(w, hex.Dump(bytes))\n}\n\nfunc main() {\n\thttp.HandleFunc(\"/\", handlerIndex)\n\thttp.HandleFunc(\"/other\", handleOther)\n\thttp.HandleFunc(\"/ok\", handleOk)\n\thttp.HandleFunc(\"/bad\", handlerBad)\n\thttp.ListenAndServe(\":8888\", nil)\n}\n"
+                        }
+                    ],
+                    "id": "a336610f-eeee-410e-8d9a-3db0b8212b4a",
+                    "name": "Server-Side Request Forgery via Tainted URL Host",
+                    "shortDescription": "User-controlled host in HTTP requests allows SSRF by making the server request arbitrary destinations.",
+                    "description": "This vulnerability arises when the application constructs an outbound HTTP request using **unvalidated user input** as the host component. In the provided Go code, calls to `fmt.Sprintf(\"https://%v/api\", r.URL.Query().Get(\"proxy\"))` and similar patterns pass a user-supplied `proxy` parameter directly to `http.Client.Post`. An attacker can exploit this to perform **Server-Side Request Forgery (SSRF)**, causing the server to connect to internal or protected services, retrieve sensitive data, or interact with internal endpoints. The root cause is the absence of input validation or restrictions on the host, allowing arbitrary scheme, hostname, port, or IP. The risk includes unauthorized data disclosure, internal network scanning, or unintended interactions with internal APIs.",
+                    "howToPrevent": "1. **Parse and validate the URL**\r\n   ```go\r\n   u, err := url.ParseRequestURI(userInput)\r\n   if err != nil {\r\n       return fmt.Errorf(\"invalid proxy URL\")\r\n   }\r\n   host := u.Hostname()\r\n   ```\r\n2. **Enforce an allowlist** of permitted hostnames or IP ranges:\r\n   ```go\r\n   allowed := map[string]bool{\"api.internal.local\": true}\r\n   if !allowed[host] {\r\n       return fmt.Errorf(\"proxy host not allowed\")\r\n   }\r\n   ```\r\n3. **Restrict the scheme** to HTTPS only:\r\n   ```go\r\n   if u.Scheme != \"https\" {\r\n       return fmt.Errorf(\"only https scheme is permitted\")\r\n   }\r\n   ```\r\n4. **Avoid `InsecureSkipVerify`** unless explicitly required. Validate TLS certificates to prevent downgrade or MITM.\r\n5. **Use separate fields** for hostname, path, and query rather than concatenating user data into a format string. Always reconstruct URLs with `url.URL` and its methods.",
+                    "severity": "HIGH",
+                    "language": "Go",
+                    "vulnerabilityType": "sast",
+                    "cvss3": {
+                        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                        "baseScore": "7.5"
+                    },
+                    "_cvss3": "cvss3",
+                    "sourceMetadata": {
+                        "subcategory": [
+                            "vuln"
+                        ],
+                        "technology": [
+                            "go"
+                        ],
+                        "languages": [
+                            "Go"
+                        ],
+                        "category": "security",
+                        "confidence": "HIGH",
+                        "impact": "MEDIUM",
+                        "likelihood": "MEDIUM"
+                    },
+                    "_sourceMetadata": "sourceMetadata"
+                },
+                "historyItems": {
+                    "items": []
+                },
+                "vulnerabilityType": "sast"
+            }
+        },
+        "vulnerability": "sast",
+        "dataflow": [
+            {
+                "file": "/JWT/secure/validate",
+                "category": "SOURCE",
+                "ligne": 37,
+                "explication": "Paramètre token reçu via @RequestParam dans l'endpoint REST sécurisé",
+                "variables": "token"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTSecureHeaderEndpoint.java",
+                "category": "PROPAGATION",
+                "ligne": 42,
+                "explication": "Décodage du JWT similaire au cas vulnérable",
+                "variables": "decodedJWT"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTSecureHeaderEndpoint.java",
+                "category": "PROPAGATION",
+                "ligne": 43,
+                "explication": "Extraction du claim jku depuis l'header du JWT",
+                "variables": "jku"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/security/TokenContextManager.java",
+                "category": "VALIDATION",
+                "ligne": 35,
+                "explication": "Validation subtile de l'URL via resolveKeyProviderUrl avec vérification des domaines autorisés",
+                "variables": "jkuUrl"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/security/NetworkAccessValidator.java",
+                "category": "SECURITY_CONTROL",
+                "ligne": 20,
+                "explication": "Validation contre liste blanche de domaines de confiance (AWS Cognito, Microsoft, Google, Auth0, Okta)",
+                "variables": "urlString"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/security/JwtConfigurationResolver.java",
+                "category": "CONFIGURATION",
+                "ligne": 13,
+                "explication": "Configuration activant la validation d'URL via webgoat.jwt.validate-urls=true",
+                "variables": "validateUrls"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/resources/application-webgoat.properties",
+                "category": "CONFIGURATION",
+                "ligne": 13,
+                "explication": "Propriété de configuration activant la validation d'URL par défaut",
+                "variables": "webgoat.jwt.validate-urls"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTSecureHeaderEndpoint.java",
+                "category": "SINK",
+                "ligne": 45,
+                "explication": "Construction d'URL identique au cas vulnérable MAIS protégée par les validations en amont",
+                "variables": "jku.asString()"
+            },
+            {
+                "file": "java-dataset-webgoat/src/main/resources/lessons/jwt/html/JWTSecure.html",
+                "category": "INTEGRATION",
+                "ligne": 12,
+                "explication": "Interface utilisateur permettant l'accès au endpoint sécurisé",
+                "variables": "token parameter"
+            },
+            {
+                "file": "java-dataset-webgoat/src/test/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTSecureHeaderEndpointTest.java",
+                "category": "INTEGRATION",
+                "ligne": 22,
+                "explication": "Tests unitaires validant le rejet d'URLs malveillantes et l'acceptation d'URLs de confiance",
+                "variables": "maliciousToken, trustedToken"
+            }
+        ],
+        "vulnerability_truth": {
+            "statut": "FP",
+            "explication": "Faux positif malgré la présence de la ligne sink identique. Bien que le code contienne 'new URL(jku.asString())' sur la ligne 45 (identique au vrai positif), cette vulnérabilité apparente est neutralisée par un système de validation multi-couches subtil. Le dataflow passe par TokenContextManager.resolveKeyProviderUrl() qui applique NetworkAccessValidator.isUrlSafe() avec une liste blanche stricte de domaines de confiance. La configuration application-webgoat.properties active cette validation par défaut. Seules les URLs pointant vers des domaines légitimes (AWS Cognito, Microsoft, Google, Auth0, Okta) sont autorisées, bloquant toute tentative SSRF vers des cibles arbitraires. Les tests confirment que les URLs malveillantes sont rejetées."
+        }
     }
 ]

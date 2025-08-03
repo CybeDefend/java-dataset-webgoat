@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>JWT Secure Validation</title>
+</head>
+<body>
+<div class="lesson-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="lesson-page-wrapper">
+                    <div class="assignment-success"><i class="fa fa-2 fa-check hidden" aria-hidden="true"></i></div>
+                    <form class="attack-form" accept-charset="UNKNOWN"
+                          method="POST"
+                          th:action="@{/JWT/secure/validate}">
+                        <div class="form-group">
+                            <label for="token">JWT Token:</label>
+                            <textarea class="form-control" id="token" name="token" rows="4"
+                                      placeholder="Enter your JWT token here..."></textarea>
+                        </div>
+                        <input type="submit" class="btn btn-primary" value="Validate Token"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
